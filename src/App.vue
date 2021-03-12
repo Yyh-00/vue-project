@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-      <p>123</p>
-      <h1>123</h1>
+    <!-- 占位符 -->
+      <router-view></router-view>
   </div>
 </template>
 
