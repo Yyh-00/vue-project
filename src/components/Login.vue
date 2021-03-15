@@ -4,18 +4,18 @@
     <div class="avatar-box">
       <img src="../assets/logo.png" alt="">
     </div>
-    <el-form  label-width="0px" class="login-form">
+    <el-form ref="loginFormRef" label-width="0px" class="login-form" :model="LoginForm" :rules='rules'>
       <!-- 用户名 -->
-      <el-form-item >
-        <el-input prefix-icon="iconfont icon-user" ></el-input>
+      <el-form-item prop="username">
+        <el-input prefix-icon="el-icon-user-solid" v-model="LoginForm.username"></el-input>
       </el-form-item>
       <!-- 密码 -->
-      <el-form-item >
-        <el-input ></el-input>
+      <el-form-item prop="password">
+        <el-input  prefix-icon="el-icon-lock"  v-model="LoginForm.password" type="password" ></el-input>
       </el-form-item>
       <el-form-item class="login-btn">
-        <el-button type="primary" >登陆</el-button>
-        <el-button type="info">重置</el-button>
+        <el-button type="primary" @click="login" >登陆</el-button>
+        <el-button type="info" @click="resetForm">重置</el-button>
       </el-form-item>
     </el-form>
 </div>
@@ -24,7 +24,40 @@
 
 <script>
 export default {
-
+  data () {
+    return {
+      LoginForm: {
+        username: 'admin',
+        password: '123456'
+      },
+      rules: {
+        username: [{ required: true, message: '请输入登陆名称', trigger: 'blur' },
+          { min: 3, max: 8, message: '长度在 3 到 8 个字符', trigger: 'blur' }],
+        password: [{ min: 3, max: 8, message: '长度在 3 到 8 个字符', trigger: 'blur' }]
+      }
+    }
+  },
+  methods: {
+    resetForm () {
+      // console.log(this)
+      this.$refs.loginFormRef.resetFields()
+    },
+    login () {
+      this.$refs.loginFormRef.validate(async valid => {
+        if (!valid) return
+        // 解构赋值
+        const { data: res } = await this.$http.post('login', this.LoginForm)
+        // console.log(res)
+        if (res.meta.status !== 200) return this.$message.error('登陆失败')
+        this.$message.success('登陆成功')
+        // console.log(res)
+        // 1.将登陆成功后的token值保存在sessionStorage中，因为只有网站打开是才会生效
+        window.sessionStorage.setItem('token', res.data.token)
+        // 2.通过编程是到行跳转到后台主页，路由地址是/home
+        this.$router.push('/home')
+      })
+    }
+  }
 }
 </script>
 
