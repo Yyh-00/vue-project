@@ -53,7 +53,7 @@ export default {
         // console.log(res)
         // 1.将登陆成功后的token值保存在sessionStorage中，因为只有网站打开是才会生效
         window.sessionStorage.setItem('token', res.data.token)
-        // 2.通过编程式导航跳转到后台主页，路由地址是/home
+        // 2.通过编程式导航 跳转到后台主页，路由地址是/home
         this.$router.push('/home')
       })
     }

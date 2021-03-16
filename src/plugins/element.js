@@ -9,7 +9,12 @@ import {
   Container,
   Header,
   Main,
-  Aside
+  Aside,
+  Menu,
+  Submenu,
+  MenuItem,
+  Breadcrumb,
+  BreadcrumbItem
 } from 'element-ui'
 
 Vue.use(Button)
@@ -21,5 +26,10 @@ Vue.use(Container)
 Vue.use(Header)
 Vue.use(Main)
 Vue.use(Aside)
+Vue.use(Menu)
+Vue.use(MenuItem)
+Vue.use(Submenu)
+Vue.use(Breadcrumb)
+Vue.use(BreadcrumbItem)
 // 全局挂载登弹窗提示
 Vue.prototype.$message = Message
