@@ -14,7 +14,16 @@ import {
   Submenu,
   MenuItem,
   Breadcrumb,
-  BreadcrumbItem
+  BreadcrumbItem,
+  Row,
+  Col,
+  Card,
+  Table,
+  TableColumn,
+  Switch,
+  Tooltip,
+  Pagination,
+  Dialog
 } from 'element-ui'
 
 Vue.use(Button)
@@ -31,5 +40,14 @@ Vue.use(MenuItem)
 Vue.use(Submenu)
 Vue.use(Breadcrumb)
 Vue.use(BreadcrumbItem)
+Vue.use(Row)
+Vue.use(Col)
+Vue.use(Card)
+Vue.use(Table)
+Vue.use(TableColumn)
+Vue.use(Switch)
+Vue.use(Tooltip)
+Vue.use(Pagination)
+Vue.use(Dialog)
 // 全局挂载登弹窗提示
 Vue.prototype.$message = Message
