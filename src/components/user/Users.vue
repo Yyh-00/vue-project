@@ -18,48 +18,48 @@
           </div>
         </el-col>
         <el-col :span="6"><el-button type="primary" @click="dialogVisible = true">添加用户</el-button></el-col>
-      </el-row>
+    </el-row>
 
       <!-- 表格区域 -->
-      <el-table :data="userlist" border stripe>
-        <el-table-column type="index" label="序号"></el-table-column>
-        <el-table-column label='姓名' prop='username'></el-table-column>
-        <el-table-column label='邮箱' prop='email'></el-table-column>
-        <el-table-column label='电话' prop='mobile'></el-table-column>
-        <el-table-column label='角色' prop='role_name'></el-table-column>
-        <el-table-column label='状态' prop='mg_state'>
-          <template slot-scope="scope">
-            <!-- {{scope.row}} 当前这一行的数据-->
-          <el-switch v-model="scope.row.mg_state" @change="changeState(scope.row)"></el-switch>
-          </template>
-        </el-table-column>
-        <el-table-column label='操作' width="180px">
-          <template slot-scope="">
-            <!-- 编辑按钮 -->
-            <el-button type="primary" icon="el-icon-edit" size="small"></el-button>
-            <!-- 删除按钮 -->
-            <el-button type="danger" icon="el-icon-delete" size="small"></el-button>
-            <!-- 分配角色按钮 -->
-            <el-tooltip  effect="dark" content="分配角色" placement="top-start" :enterable=false>
-            <el-button type="warning" icon="el-icon-setting" size="small"></el-button>
-            </el-tooltip>
-          </template>
-        </el-table-column>
-      </el-table>
+    <el-table :data="userlist" border stripe>
+      <el-table-column type="index" label="序号"></el-table-column>
+      <el-table-column label='姓名' prop='username'></el-table-column>
+      <el-table-column label='邮箱' prop='email'></el-table-column>
+      <el-table-column label='电话' prop='mobile'></el-table-column>
+      <el-table-column label='角色' prop='role_name'></el-table-column>
+      <el-table-column label='状态' prop='mg_state'>
+        <template slot-scope="scope">
+          <!-- {{scope.row}} 当前这一行的数据-->
+        <el-switch v-model="scope.row.mg_state" @change="changeState(scope.row)"></el-switch>
+        </template>
+      </el-table-column>
+      <el-table-column label='操作' width="180px">
+        <template slot-scope="scope">
+          <!-- 编辑按钮 -->
+          <el-button type="primary" icon="el-icon-edit" size="small"  @click="showUser(scope.row)"></el-button>
+          <!-- 删除按钮 -->
+          <el-button type="danger" icon="el-icon-delete" size="small" @click="deleteUser(scope.row.id)"></el-button>
+          <!-- 分配角色按钮 -->
+          <el-tooltip  effect="dark" content="分配角色" placement="top-start" :enterable=false>
+          <el-button type="warning" icon="el-icon-setting" size="small"></el-button>
+          </el-tooltip>
+        </template>
+      </el-table-column>
+    </el-table>
 
-      <!-- 分页区域 -->
-      <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="userInfo.pagenum"
-      :page-sizes="[1, 2, 5, 8]"
-      :page-size="userInfo.pagesize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total=total>
+    <!-- 分页区域 -->
+    <el-pagination
+    @size-change="handleSizeChange"
+    @current-change="handleCurrentChange"
+    :current-page="userInfo.pagenum"
+    :page-sizes="[1, 2, 5, 8]"
+    :page-size="userInfo.pagesize"
+    layout="total, sizes, prev, pager, next, jumper"
+    :total=total>
     </el-pagination>
 
     <!-- 添加用户的对话框 -->
-    <el-dialog title="提示" :visible.sync="dialogVisible" width="50%">
+    <el-dialog title="提示" :visible.sync="dialogVisible" width="50%" @close='addDialogClose'>
         <!-- 内容主体区域 -->
         <span>
           <el-form :model="addForm" ref="addFormRef" label-width="80px" :rules="addRules">
@@ -79,9 +79,31 @@
         </span>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+          <el-button type="primary" @click="addUser">确 定</el-button>
         </span>
-      </el-dialog>
+    </el-dialog>
+
+    <!-- 修改用户信息的对话框 -->
+     <el-dialog title="提示" :visible.sync="modifyDialogVisible" width="50%" @close='modifyDialogClose' >
+        <!-- 内容主体区域 -->
+        <span>
+          <el-form :model="addForm" ref="modifyFormRef" label-width="80px" :rules="addRules">
+            <el-form-item label="用户名">
+              <el-input v-model="addForm.username" disabled ></el-input>
+            </el-form-item>
+            <el-form-item label="邮箱" prop="email">
+              <el-input v-model="addForm.email"></el-input>
+            </el-form-item>
+            <el-form-item label="手机" prop="mobile">
+              <el-input v-model="addForm.mobile"></el-input>
+            </el-form-item>
+          </el-form>
+        </span>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="modifyDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="modifyUser">确 定</el-button>
+        </span>
+    </el-dialog>
     </el-card>
   </div>
 </template>
@@ -115,6 +137,8 @@ export default {
       userlist: [],
       total: 1,
       dialogVisible: false,
+      modifyDialogVisible: false,
+      id: 1,
       addForm: {
         username: '',
         password: '',
@@ -125,8 +149,8 @@ export default {
         username: [{ required: true, message: '请输入登陆名称', trigger: 'blur' },
           { min: 3, max: 8, message: '长度在 3 到 8 个字符', trigger: 'blur' }],
         password: [{ required: true, message: '请输入密码', trigger: 'blur' }, { min: 6, max: 15, message: '长度在 6 到 15 个字符', trigger: 'blur' }],
-        email: [{ required: true, message: '请输入密码', trigger: 'blur' }, { validator: checkEmail, trigger: 'blur' }],
-        mobile: [{ required: true, message: '请输入密码', trigger: 'blur' }, { validator: checkMobile, trigger: 'blur' }]
+        email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }, { validator: checkEmail, trigger: 'blur' }],
+        mobile: [{ required: true, message: '请输入手机号', trigger: 'blur' }, { validator: checkMobile, trigger: 'blur' }]
       }
     }
   },
@@ -158,8 +182,74 @@ export default {
         return
       }
       this.$message.success('设置用户状态成功！')
-    }
+    },
+    addDialogClose() {
+      // 重置表单
+      this.$refs.addFormRef.resetFields()
+    },
+    modifyDialogClose() {
+      this.addForm = {
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
+      }
+      this.$refs.modifyFormRef.resetFields()
+    },
+    addUser() {
+      this.$refs.addFormRef.validate(async valid => {
+        if (!valid) return this.$message.error('请检查表单格式')
+        // 可以发起添加用户请求
+        const { data: res } = await this.$http.post('users', this.addForm)
+        if (res.meta.status !== 201) return this.$message.error('添加用户失败！')
+        this.$message.success('添加用户成功！')
+        this.dialogVisible = false
+        this.getUserList()
+      })
+    },
+    showUser(msg) {
+      console.log(msg)
+      this.addForm.username = msg.username
+      this.addForm.email = msg.email
+      this.addForm.mobile = msg.mobile
+      this.id = msg.id
+      this.modifyDialogVisible = true
+    },
+    modifyUser() {
+      const params = { email: this.addForm.email, mobile: this.addForm.mobile }
 
+      this.$refs.modifyFormRef.validate(async valid => {
+        if (!valid) return this.$message.error('请检查表单格式')
+        // 可以发起修改用户请求
+        const { data: res } = await this.$http.put(`users/${this.id}`, params)
+        if (res.meta.status !== 200) return this.$message.error('编辑用户失败！')
+        this.$message.success('编辑用户成功！')
+        this.modifyDialogVisible = false
+        this.getUserList()
+      })
+    },
+    async deleteUser(id) {
+      // 弹出提示框
+      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async() => {
+        const { data: res } = await this.$http.delete(`users/${id}`)
+        if (res.meta.status !== 200) return this.$message.error('删除失败！')
+        // this.$message.success('删除用户成功！')
+        this.getUserList()
+        this.$message({
+          type: 'success',
+          message: '删除成功!'
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消删除'
+        })
+      })
+    }
   }
 }
 </script>
