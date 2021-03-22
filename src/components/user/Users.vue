@@ -19,7 +19,6 @@
         </el-col>
         <el-col :span="6"><el-button type="primary" @click="dialogVisible = true">添加用户</el-button></el-col>
       </el-row>
-
       <!-- 表格区域 -->
       <el-table :data="userlist" border stripe>
         <el-table-column type="index" label="序号"></el-table-column>
