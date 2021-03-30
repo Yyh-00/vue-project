@@ -72,7 +72,6 @@ export default {
     },
     async getMenuList () {
       const { data: res } = await this.$http.get('menus')
-      console.log(res)
       if (res.meta.status !== 200) return this.$meaasge.error(res.meta.mesg)
       this.menuList = res.data
     },

@@ -3,9 +3,10 @@ import VueRouter from 'vue-router'
 import Login from '../components/Login.vue'
 import Home from '../components/Home.vue'
 import Welcome from '../components/Welcome.vue'
-import Users from '../components/user/Users.vue'
+import Users from '../components/User/Users.vue'
 import Rights from '../components/Power/Rights.vue'
 import Roles from '../components/Power/Roles.vue'
+import Categories from '../components/Goods/Categories.vue'
 
 Vue.use(VueRouter)
 
@@ -26,6 +27,10 @@ const routes = [
       {
         path: '/roles',
         component: Roles
+      },
+      {
+        path: '/categories',
+        component: Categories
       }
     ]
   }
@@ -35,6 +40,7 @@ const router = new VueRouter({
   routes
 })
 
+// 路由导航守卫
 router.beforeEach((to, from, next) => {
   // to 将要访问的路径
   // from 代表从哪个路径跳转页面

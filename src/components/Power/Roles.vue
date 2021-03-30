@@ -172,6 +172,7 @@ export default {
     },
     // 删除指定角色
     async deleteRoles(id) {
+      // console.log(document.body.scrollHeight)
       // 弹出提示框
       this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
         confirmButtonText: '确定',
