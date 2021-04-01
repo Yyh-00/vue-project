@@ -32,7 +32,9 @@ import {
   Cascader,
   Alert,
   Tabs,
-  TabPane
+  TabPane,
+  Step,
+  Steps
 } from 'element-ui'
 
 Vue.use(Button)
@@ -66,6 +68,8 @@ Vue.use(Cascader)
 Vue.use(Alert)
 Vue.use(Tabs)
 Vue.use(TabPane)
+Vue.use(Step)
+Vue.use(Steps)
 // 全局挂载登弹窗提示
 Vue.prototype.$message = Message
 Vue.prototype.$confirm = MessageBox.confirm
