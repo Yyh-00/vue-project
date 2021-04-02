@@ -23,7 +23,7 @@
 
       <!-- 侧边标签页区域 -->
       <el-form :model="addGoodsForm" :rules="addGoodsRules" ref="addGoodsFormRef" label-width="100px" label-position='top'>
-       <el-tabs :tab-position="'left'"  v-model="activeIndex">
+       <el-tabs :tab-position="'left'"  v-model="activeIndex" :before-leave='beforeTabLeave' @tab-click='tabClick'>
         <el-tab-pane label="基本信息" name="0">
           <el-form-item label="商品名称" prop='goods_name'>
             <el-input v-model="addGoodsForm.goods_name"></el-input>
@@ -46,13 +46,47 @@
            </el-cascader>
           </el-form-item>
         </el-tab-pane>
-        <el-tab-pane label="商品参数" name="1">商品参数</el-tab-pane>
-        <el-tab-pane label="商品属性" name="2">商品属性</el-tab-pane>
-        <el-tab-pane label="商品图片" name="3">商品图片</el-tab-pane>
-        <el-tab-pane label="商品内容" name="4">商品内容</el-tab-pane>
-      </el-tabs>
-    </el-form>
+        <el-tab-pane label="商品参数" name="1">
+          <!-- 复选框组件 -->
+          <el-form-item :label="item.attr_name" v-for="item in manyParamsData" :key="item.attr_id">
+            <el-checkbox-group v-model="item.attr_vals" >
+              <el-checkbox v-for="(cb,i) in item.attr_vals" :key="i" :label="cb" border></el-checkbox>
+           </el-checkbox-group>
+          </el-form-item>
+        </el-tab-pane>
+        <el-tab-pane label="商品属性" name="2">
+          <el-form-item :label="item.attr_name" v-for="item in onlyParamsData" :key="item.attr_id">
+            <el-input v-model="item.attr_vals"></el-input>
+          </el-form-item>
+        </el-tab-pane>
+        <el-tab-pane label="商品图片" name="3">
+          <el-upload
+            action="https://www.liulongbin.top:8888/api/private/v1/upload"
+            :on-preview="handlePreview"
+            :on-remove="handleRemove"
+            list-type="picture" :headers="headersObj" :on-success='handleSuccess' >
+            <el-button size="small" type="primary">点击上传</el-button>
+            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+          </el-upload>
+        </el-tab-pane>
+        <el-tab-pane label="商品内容" name="4">
+          <!-- 富文本编辑器 -->
+          <quill-editor :content='addGoodsForm.goods_introduce'></quill-editor>
+          <!-- 添加按钮 -->
+          <el-button type="primary" class="addGoods" @click="addGoods">添加商品</el-button>
+        </el-tab-pane>
+       </el-tabs>
+      </el-form>
     </el-card>
+
+    <!-- 预览图片的对话框 -->
+    <el-dialog
+      title="预览图片"
+      :visible.sync="previewVisible"
+      width="50%"
+      >
+      <img :src="previewUrl" alt="" class="previewImg">
+    </el-dialog>
   </div>
 </template>
 
@@ -66,7 +100,12 @@ export default {
         goods_price: 0,
         goods_weight: 0,
         goods_number: 0,
-        goods_cat: []
+        goods_cat: [],
+        // 图片数组
+        pics: [],
+        // 商品介绍
+        goods_introduce: '',
+        attrs: []
       },
       addGoodsRules: {
         goods_name: [{ required: true, message: '请输入商品名称', trigger: 'blur' }],
@@ -81,7 +120,14 @@ export default {
         label: 'cat_name',
         children: 'children',
         expandTrigger: 'hover'
-      }
+      },
+      manyParamsData: [],
+      onlyParamsData: [],
+      headersObj: {
+        Authorization: window.sessionStorage.getItem('token')
+      },
+      previewUrl: '',
+      previewVisible: false
     }
   },
   created() {
@@ -97,11 +143,91 @@ export default {
       console.log(this.catelist)
     },
     handleChange() {
-      console.log(this.addGoodsForm.goods_cat)
+      // console.log(this.addGoodsForm.goods_cat)
+      if (this.addGoodsForm.goods_cat.length !== 3) {
+        this.addGoodsForm.goods_cat = []
+      }
+    },
+    // 阻止return false就是阻止标签页切换
+    beforeTabLeave(activeName, oldActiveName) {
+      if (oldActiveName === '0' && this.addGoodsForm.goods_cat.length !== 3) {
+        this.$message.error('请先选择商品分类！')
+        return false
+      }
+    },
+    async tabClick() {
+      if (this.activeIndex === '1') {
+        const { data: res } = await this.$http.get(`categories/${this.cateId}/attributes`, { params: { sel: 'many' } })
+        if (res.meta.status !== 200) {
+          return this.$message.error('获取参数失败！')
+        }
+        res.data.forEach(item => {
+          item.attr_vals = item.attr_vals.length === 0 ? [] : item.attr_vals.split(' ')
+        })
+        this.manyParamsData = res.data
+        // console.log(this.manyParamsData)
+      }
+      if (this.activeIndex === '2') {
+        const { data: res } = await this.$http.get(`categories/${this.cateId}/attributes`, { params: { sel: 'only' } })
+        if (res.meta.status !== 200) {
+          return this.$message.error('获取属性失败！')
+        }
+        this.onlyParamsData = res.data
+        console.log(this.onlyParamsData)
+      }
+    },
+    // 处理图片预览效果
+    handlePreview(file) {
+      // console.log(file)
+      this.previewUrl = file.url
+      // console.log(this.previewUrl)
+      this.previewVisible = true
+    },
+    // 处理图片移除之后的操作
+    handleRemove(file) {
+      // console.log(file)
+      const filePath = file.response.data.tmp_path
+      const i = this.addGoodsForm.pics.findIndex(x => x.pic === filePath)
+      this.addGoodsForm.pics.splice(i, 1)
+      // console.log(this.addGoodsForm)
+    },
+    // 图片上传成功后的操作
+    handleSuccess(response) {
+      // console.log(response)
+      const pathObj = { pic: response.data.tmp_path }
+      this.addGoodsForm.pics.push(pathObj)
+      // console.log(this.addGoodsForm)
+    },
+    addGoods() {
+      console.log(this.addGoodsForm)
+      this.$refs.addGoodsFormRef.validate(vaild => {
+        if (!vaild) {
+          return this.$message.error('请填写必要的表单项！')
+        }
+        // 验证成功的操作
+        this.addGoodsForm.goods_cat = this.addGoodsForm.goods_cat.join(',')
+        /* this.addGoodsForm.attrs = [...this.manyParamsData.attr_vals, ...this.onlyParamsData.attr_vals] */
+      })
+    }
+  },
+  computed: {
+    cateId() {
+      if (this.addGoodsForm.goods_cat.length === 3) {
+        return this.addGoodsForm.goods_cat[2]
+      }
+      return null
     }
   }
 }
 </script>
 <style lang="less" scoped>
-
+.el-checkbox{
+  margin: 0 10px 0 0 !important;
+}
+.previewImg{
+  width: 100%;
+}
+.addGoods{
+  margin-top: 20px;
+}
 </style>
