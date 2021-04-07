@@ -91,6 +91,8 @@
 </template>
 
 <script>
+import _ from 'lodash'
+
 export default {
   data() {
     return {
@@ -127,7 +129,9 @@ export default {
         Authorization: window.sessionStorage.getItem('token')
       },
       previewUrl: '',
-      previewVisible: false
+      previewVisible: false,
+      manyParamsDataAttrs: [],
+      onlyParamsDataAttrs: []
     }
   },
   created() {
@@ -140,7 +144,7 @@ export default {
         return this.$message.error('获取商品列表数据失败！')
       }
       this.catelist = res.data
-      console.log(this.catelist)
+      // console.log(this.catelist)
     },
     handleChange() {
       // console.log(this.addGoodsForm.goods_cat)
@@ -165,7 +169,12 @@ export default {
           item.attr_vals = item.attr_vals.length === 0 ? [] : item.attr_vals.split(' ')
         })
         this.manyParamsData = res.data
-        // console.log(this.manyParamsData)
+        this.manyParamsData.forEach(item => {
+          const manyattr = {}
+          manyattr.attr_id = item.attr_id
+          manyattr.attr_value = item.attr_vals.join(',')
+          this.manyParamsDataAttrs.push(manyattr)
+        })
       }
       if (this.activeIndex === '2') {
         const { data: res } = await this.$http.get(`categories/${this.cateId}/attributes`, { params: { sel: 'only' } })
@@ -173,7 +182,12 @@ export default {
           return this.$message.error('获取属性失败！')
         }
         this.onlyParamsData = res.data
-        console.log(this.onlyParamsData)
+        this.onlyParamsData.forEach(item => {
+          const onlyattr = {}
+          onlyattr.attr_id = item.attr_id
+          onlyattr.attr_value = item.attr_vals
+          this.onlyParamsDataAttrs.push(onlyattr)
+        })
       }
     },
     // 处理图片预览效果
@@ -199,14 +213,25 @@ export default {
       // console.log(this.addGoodsForm)
     },
     addGoods() {
-      console.log(this.addGoodsForm)
-      this.$refs.addGoodsFormRef.validate(vaild => {
+      this.$refs.addGoodsFormRef.validate(async vaild => {
         if (!vaild) {
           return this.$message.error('请填写必要的表单项！')
         }
         // 验证成功的操作
-        this.addGoodsForm.goods_cat = this.addGoodsForm.goods_cat.join(',')
-        /* this.addGoodsForm.attrs = [...this.manyParamsData.attr_vals, ...this.onlyParamsData.attr_vals] */
+        // lodash cloneDeep(obj)
+        const form = _.cloneDeep(this.addGoodsForm)
+        // this.addGoodsForm.goods_price = this.addGoodsForm.goods_price - 0
+        // this.addGoodsForm.goods_number = this.addGoodsForm.goods_number - 0
+        // this.addGoodsForm.goods_weight = this.addGoodsForm.goods_weight - 0
+        form.goods_cat = form.goods_cat.join(',')
+        form.attrs = [...this.manyParamsDataAttrs, ...this.onlyParamsDataAttrs]
+        const { data: res } = await this.$http.post('goods', form)
+        console.log(res)
+        if (res.meta.status !== 201) {
+          return this.$message.error('添加商品失败！')
+        }
+        this.$message.success('添加商品成功！')
+        this.$router.push('/goods')
       })
     }
   },

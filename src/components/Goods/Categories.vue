@@ -34,14 +34,14 @@
 
       <!-- 分页区域 -->
       <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="queryinfo.pagenum"
-      :page-sizes="[2, 5, 8, 10]"
-      :page-size="queryinfo.pagesize"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="total">
-    </el-pagination>
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="queryinfo.pagenum"
+          :page-sizes="[2, 5, 8, 10]"
+          :page-size="queryinfo.pagesize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total">
+        </el-pagination>
     </el-card>
 
      <!-- 添加分类对话框 -->
